@@ -13,7 +13,7 @@ function Light(name, x, y, colorOn, colorOff) {
 //   this.circle.click(msgBox(name +"  clicked"));  // geht
 
    let that = this;
-   this.circle.click(function(){that.on(that)});  // geht nicht ... 
+   this.circle.click(function(){that.on(that)});  // Elegant is anders.... hm... ??!
    
 //   this.circle.id = "cid";
    
