@@ -12,7 +12,8 @@ function Light(name, x, y, colorOn, colorOff) {
 
 //   this.circle.click(msgBox(name +"  clicked"));  // geht
 
-   this.circle.click(this.on);  // geht nicht ... 
+   let that = this;
+   this.circle.click(function(){that.on(that)});  // geht nicht ... 
    
 //   this.circle.id = "cid";
    
@@ -20,8 +21,8 @@ function Light(name, x, y, colorOn, colorOff) {
 
 }
 
-Light.prototype.on = function () {
-    log(this.name + " turned on");
+Light.prototype.on = function (light) {
+    log(light.name + " turned on");
 }
 
 Light.prototype.off = function () {
