@@ -1,46 +1,59 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-var app = {
-    // Application Constructor
-    initialize: function() {
-        document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
-    },
 
-    // deviceready Event Handler
-    //
-    // Bind any cordova events here. Common events are:
-    // 'pause', 'resume', etc.
-    onDeviceReady: function() {
-        this.receivedEvent('deviceready');
-    },
+var paper;
 
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
+function Light(name, x, y, colorOn, colorOff) {
+    this.name = name;
+    log ("name -> " + name);
+    this.circle = paper.circle(x, y, 100);
+    this.circle.attr({
+        fill: colorOn,
+        cursor: 'pointer'
+    });
 
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
+//   this.circle.click(msgBox(name +"  clicked"));  // geht
 
-        console.log('Received Event: ' + id);
-    }
+   this.circle.click(this.on);  // geht nicht ... 
+   
+//   this.circle.id = "cid";
+   
+//   $('#cid').on( 'click', this.on.bind(this) );
+
+}
+
+Light.prototype.on = function () {
+    log(this.name + " turned on");
+}
+
+Light.prototype.off = function () {
+    log(this.name + " turned off");
+}
+
+function Device() {}
+
+Device.prototype.init = function () {
+    this.circle = paper.circle(300, 300, 300);
+    this.circle.attr({
+        fill: 'gray'
+    });
+    
+    this.greenlight = new Light("Greenlight", 200,200, 'green');
+    this.redlight = new Light("Redlight", 400,200, 'red');
+    this.yellowlight = new Light("Yellowlight", 200,400, 'yellow');
+    this.bluelight = new Light("Bluelight", 400,400, 'blue');
 };
 
-app.initialize();
+$(document).ready(function () {
+    paper = Raphael(document.getElementById('device'), 600, 600);
+    new Device().init();
+});
+
+function msgBox(text) {
+    return function () {
+//        log("msgBox -> text");
+        alert(text);
+    };
+}
+
+function log(text) {
+    console.log(text);
+}
