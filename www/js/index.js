@@ -1,19 +1,29 @@
-
-var paper;
-
-function Light(name, x, y, colorOn, colorOff) {
+function Light(paper, name, x, y, radius, rotation, colorOn, colorOff) {
     this.state = "off";
     this.colorOn = colorOn;
     this.colorOff = colorOff;
     this.name = name;
     log("name -> " + name);
-    this.circle = paper.circle(x, y, 100);
-    this.circle.attr({
-        fill: this.colorOff,
+    var path = "m" + x + " " + y;
+    path += " c" + (radius / 2) + ",0";
+    path += " " + radius + "," + (radius / 2);
+    path += " " + radius + "," + radius + " ";
+
+    console.log(path);
+
+    this.lamp = paper.path(path);
+
+    this.lamp.rotate(rotation);
+
+    var strokeWidth = radius / 1.5;
+
+    this.lamp.attr({
+        stroke: this.colorOff,
+        'stroke-width': strokeWidth,
         cursor: 'pointer'
     });
 
-    this.circle.click(this.toggle.bind(this));
+    this.lamp.click(this.toggle.bind(this));
 }
 
 Light.prototype.toggle = function () {
@@ -23,38 +33,46 @@ Light.prototype.toggle = function () {
 
 Light.prototype.on = function () {
     log(this.name + " turned on");
-    this.circle.attr({
-        fill: this.colorOn,
-        cursor: 'pointer'
+    this.lamp.attr({
+        stroke: this.colorOn
     });
 }
 
 Light.prototype.off = function () {
     log(this.name + " turned off");
-    this.circle.attr({
-        fill: this.colorOff,
-        cursor: 'pointer'
+    this.lamp.attr({
+        stroke: this.colorOff,
     });
 }
 
 function Device() {
 }
 
-Device.prototype.init = function () {
-    this.circle = paper.circle(300, 300, 300);
-    this.circle.attr({
-        fill: 'gray'
-    });
+Device.prototype.init = function (paper) {
+    
+   
+    var radius = boxSize / 3;
 
-    this.greenlight = new Light("Greenlight", 200, 200, 'green', 'white');
-    this.redlight = new Light("Redlight", 400, 200, 'red', 'white');
-    this.yellowlight = new Light("Yellowlight", 200, 400, 'yellow', 'white');
-    this.bluelight = new Light("Bluelight", 400, 400, 'blue', 'white');
+    paper.circle(boxSize / 2, boxSize / 2, boxSize / 2).attr({fill: 'gray'});
+    paper.circle(boxSize / 2, boxSize / 2, boxSize / 5).attr({fill: 'WhiteSmoke'});
+
+    // Naja, so ungefähr. 
+    var xOff = 20;
+    var yOff = 20;
+
+    this.bluelight = new Light(paper, "Bluelight", 400 + xOff, 100 + yOff, radius, 0, 'RoyalBlue', 'DarkBlue');
+    this.greenlight = new Light(paper, "Greenlight", 400 + xOff, 400 + yOff, radius, 90, 'LightGreen', 'DarkGreen');
+    this.redLight = new Light(paper, "Redlight", 100 + xOff, 400 + yOff, radius, 180, 'red', 'DarkRed');
+    this.yellowLight = new Light(paper, "Yellowlight", 100 + xOff, 100 + yOff, radius, 270, 'yellow', 'GoldenRod');
 };
 
+
+var boxSize = 800;
+
+
 $(document).ready(function () {
-    paper = Raphael(document.getElementById('device'), 600, 600);
-    new Device().init();
+     var paper = Raphael(document.getElementById('device'), boxSize, boxSize);
+    new Device().init(paper);
 });
 
 function msgBox(text) {
