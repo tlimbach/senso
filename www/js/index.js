@@ -3,7 +3,6 @@ function Light(paper, name, x, y, radius, rotation, colorOn, colorOff) {
     this.colorOn = colorOn;
     this.colorOff = colorOff;
     this.name = name;
-    log("name -> " + name);
     var path = "m" + x + " " + y;
     path += " c" + (radius / 2) + ",0";
     path += " " + radius + "," + (radius / 2);
@@ -11,9 +10,7 @@ function Light(paper, name, x, y, radius, rotation, colorOn, colorOff) {
 
     console.log(path);
 
-    this.lamp = paper.path(path);
-
-    this.lamp.rotate(rotation);
+    this.lamp = paper.path(path).rotate(rotation);
 
     var strokeWidth = radius / 1.5;
 
@@ -49,35 +46,39 @@ function Device() {
 }
 
 Device.prototype.init = function (paper) {
-    
-   
-    var radius = boxSize / 3;
 
-    paper.circle(boxSize / 2, boxSize / 2, boxSize / 2).attr({fill: 'gray'});
-    paper.circle(boxSize / 2, boxSize / 2, boxSize / 5).attr({fill: 'WhiteSmoke'});
+    paper.circle(500, 500, 450).attr({fill: 'gray'});
+    paper.circle(500, 500, 200).attr({fill: 'WhiteSmoke'});
 
-    // Naja, so ungefähr. 
-    var xOff = 20;
-    var yOff = 20;
-
-    this.bluelight = new Light(paper, "Bluelight", 400 + xOff, 100 + yOff, radius, 0, 'RoyalBlue', 'DarkBlue');
-    this.greenlight = new Light(paper, "Greenlight", 400 + xOff, 400 + yOff, radius, 90, 'LightGreen', 'DarkGreen');
-    this.redLight = new Light(paper, "Redlight", 100 + xOff, 400 + yOff, radius, 180, 'red', 'DarkRed');
-    this.yellowLight = new Light(paper, "Yellowlight", 100 + xOff, 100 + yOff, radius, 270, 'yellow', 'GoldenRod');
+    var radiusLight = 290;
+    this.bluelight = new Light(paper, "Bluelight", 530, 180, radiusLight, 0, 'RoyalBlue', 'DarkBlue');
+    this.greenlight = new Light(paper, "Greenlight", 530, 530, radiusLight, 90, 'LightGreen', 'DarkGreen');
+    this.redLight = new Light(paper, "Redlight", 180, 530, radiusLight, 180, 'red', 'DarkRed');
+    this.yellowLight = new Light(paper, "Yellowlight", 180,180, radiusLight, 270, 'yellow', 'GoldenRod');
 };
 
-
-var boxSize = 800;
-
-
 $(document).ready(function () {
-     var paper = Raphael(document.getElementById('device'), boxSize, boxSize);
-    new Device().init(paper);
+    
+    window.addEventListener('resize', function() {
+        var paperSize = getAvailableSize();
+        paper.setSize(paperSize, paperSize);
+    });
+    
+    var paperSize = getAvailableSize();
+    var paper = Raphael(document.getElementById('device'), paperSize, paperSize);
+    paper.rect(0, 0, 1000, 1000).attr({fill: 'Snow'});
+    paper.setViewBox(0, 0, 1000, 1000);
+    new Device().init(paper, paperSize);
 });
+
+function getAvailableSize() {
+    var availableWidth = window.innerWidth;
+    var availableHeight = window.innerHeight;
+    return Math.min(availableWidth, availableHeight);
+}
 
 function msgBox(text) {
     return function () {
-//        log("msgBox -> text");
         alert(text);
     };
 }
