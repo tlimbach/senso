@@ -1,18 +1,12 @@
-function Light(controller, paper, name, x, y, radius, rotation, colorOn, colorOff) {
+function Light(controller, paper, x, y, radius, rotation, colorOn, colorOff) {
     this.controller = controller;
 
-    console.log("ctrL =" + controller);
-
-    this.state = "off";
     this.colorOn = colorOn;
     this.colorOff = colorOff;
-    this.name = name;
     var path = "m" + x + " " + y;
     path += " c" + (radius / 2) + ",0";
     path += " " + radius + "," + (radius / 2);
     path += " " + radius + "," + radius + " ";
-
-    console.log(path);
 
     this.lamp = paper.path(path).rotate(rotation);
 
@@ -21,10 +15,10 @@ function Light(controller, paper, name, x, y, radius, rotation, colorOn, colorOf
     this.lamp.attr({
         stroke: this.colorOff,
         'stroke-width': strokeWidth,
+        'opacity': '0.8',
         cursor: 'pointer'
     });
 
-//    this.lamp.click(this.toggle.bind(this));
     this.lamp.click(
             function () {
                 this.on();
@@ -33,27 +27,16 @@ function Light(controller, paper, name, x, y, radius, rotation, colorOn, colorOf
             }.bind(this));
 }
 
-Light.prototype.toggle = function () {
-    this.state === "off" ? this.state = "on" : this.state = "off";
-    this.state === "off" ? this.off.bind(this)() : this.on.bind(this)();
-}
-
 Light.prototype.on = function () {
-    log(this.name + " turned on");
     this.lamp.attr({
         stroke: this.colorOn
     });
 }
 
 Light.prototype.off = function () {
-    log(this.name + " turned off");
     this.lamp.attr({
-        stroke: this.colorOff,
+        stroke: this.colorOff
     });
-}
-
-Light.prototype.getName = function () {
-    return this.name;
 }
 
 function Device(controller) {
@@ -61,38 +44,171 @@ function Device(controller) {
 }
 
 Device.prototype.init = function (paper) {
-    this.userInput = true;
 
-    paper.circle(500, 500, 450).attr({fill: 'gray'});
-    paper.circle(500, 500, 200).attr({fill: 'WhiteSmoke'});
+ paper.circle(500, 500, 450).attr({fill: 'url("img/plastik.png")'});
+
+       
+    paper.circle(500, 500, 200).attr({fill: 'url("img/metall.png")'});
 
     var radiusLight = 290;
-    this.bluelight = new Light(this.controller, paper, "Bluelight", 530, 180, radiusLight, 0, 'RoyalBlue', 'DarkBlue');
-    this.greenlight = new Light(this.controller, paper, "Greenlight", 530, 530, radiusLight, 90, 'LightGreen', 'DarkGreen');
-    this.redLight = new Light(this.controller, paper, "Redlight", 180, 530, radiusLight, 180, 'red', 'DarkRed');
-    this.yellowLight = new Light(this.controller, paper, "Yellowlight", 180, 180, radiusLight, 270, 'yellow', 'GoldenRod');
+    this.lights = [];
+    this.lights.push(new Light(this.controller, paper, 530, 180, radiusLight, 0, 'RoyalBlue', 'DarkBlue'));
+    this.lights.push(new Light(this.controller, paper, 530, 530, radiusLight, 90, 'LightGreen', 'DarkGreen'));
+    this.lights.push(new Light(this.controller, paper, 180, 530, radiusLight, 180, 'red', 'DarkRed'));
+    this.lights.push(new Light(this.controller, paper, 180, 180, radiusLight, 270, 'yellow', 'GoldenRod'));
+
+    this.roundnumber = paper.text(500, 500, "");
+
+    this.gameOver = paper.text(500, 490, "GAME OVER");
+    this.restart = paper.text(500, 550, "restart");
+
+    this.st = paper.set();
+    this.st.push(this.gameOver, this.restart);
+
+    this.gameOver.attr({
+        'font-size': '64px',
+        'x': '-1000px'
+    });
+
+    this.restart.attr({
+        'font-size': '58px',
+        'x': '-1000px'
+    });
+
+    this.start = paper.text(500, 500, "Start");
+    this.start.attr({
+        'font-size': '104px'
+    });
+
+
+    this.start.attr({
+        'font-size': '104px'
+    });
+
+    this.start.click(
+            function () {
+                this.controller.startGame();
+            }.bind(this));
+
+    this.st.click(
+            function () {
+                this.controller.startGame();
+            }.bind(this));
+
 };
 
-Device.prototype.shineYellow = function (delay, duration) {
-    setTimeout(this.yellowLight.on.bind(this.yellowLight), delay);
-    setTimeout(this.yellowLight.off.bind(this.yellowLight), (delay + duration));
-};
-Device.prototype.shineBlue = function (delay, duration) {
-    setTimeout(this.bluelight.on.bind(this.bluelight), delay);
-    setTimeout(this.bluelight.off.bind(this.bluelight), (delay + duration));
-};
-Device.prototype.shineGreen = function (delay, duration) {
-    setTimeout(this.greenlight.on.bind(this.greenlight), delay);
-    setTimeout(this.greenlight.off.bind(this.greenlight), (delay + duration));
-};
-Device.prototype.shineRed = function (delay, duration) {
-    setTimeout(this.redLight.on.bind(this.redLight), delay);
-    setTimeout(this.redLight.off.bind(this.redLight), (delay + duration));
-};
 
-Device.prototype.enableUserInput = function (userInput) {
-    this.userInput = userInput;
+Device.prototype.getLights = function () {
+    return this.lights;
 }
+
+Device.prototype.shine = function (light, delay, duration) {
+    setTimeout(light.on.bind(light), delay);
+    setTimeout(light.off.bind(light), (delay + duration));
+};
+
+Device.prototype.setStartEnabled = function (enabled) {
+    var x = enabled ? 500 : -1000;
+    this.start.attr({"x": x});
+}
+
+Device.prototype.setGameoverEnabled = function (enabled) {
+    var x = enabled ? 500 : -1000;
+    this.st.attr({"x": x});
+}
+
+Device.prototype.setRoundnumber = function (number) {
+    this.roundnumber.attr({
+        'text': number,
+        'font-size': '124px',
+        'stroke-width' : '10px'
+    });
+}
+
+
+function Controller() {
+}
+
+Controller.prototype.init = function () {
+    window.addEventListener('resize', function () {
+        var paperSize = getAvailableSize();
+        paper.setSize(paperSize, paperSize);
+    });
+
+    var paperSize = getAvailableSize();
+    var paper = Raphael(document.getElementById('device'), paperSize, paperSize);
+    paper.rect(0, 0, 1000, 1000).attr({fill: 'url("img/sand.png")'});
+    paper.setViewBox(0, 0, 1000, 1000);
+    this.device = new Device(this);
+    this.device.init(paper, paperSize);
+    this.lights = this.device.getLights();
+};
+
+Controller.prototype.getRandomLight = function () {
+    var x = Math.floor((Math.random() * 4));
+    return this.lights[x];
+}
+
+Controller.prototype.startGame = function () {
+    this.order = [];
+    this.device.setStartEnabled(false);
+    this.device.setGameoverEnabled(false);
+    this.runNextLevel();
+}
+
+Controller.prototype.runNextLevel = function () {
+    this.order.push(this.getRandomLight());
+
+    this.orderToCheck = 'undefined';
+
+    this.device.setRoundnumber(this.order.length);
+
+    var that = this;
+    setTimeout(function () {
+        that.play(that.order, 1000, 500);
+    }, 500);
+}
+
+Controller.prototype.checkUserInput = function (order) {
+    this.orderToCheck = order;
+    this.userClickCount = -1;
+}
+
+Controller.prototype.setClicked = function (light) {
+    this.userClickCount++;
+
+    if (this.orderToCheck !== 'undefined') {
+
+        if (light !== this.orderToCheck[this.userClickCount]) {
+
+            this.order = [];
+            this.orderToCheck = 'undefined';
+
+            var that = this;
+            setTimeout(function () {
+                that.device.setGameoverEnabled(true);
+                that.device.setRoundnumber("");
+            }, 1000);
+            return;
+        }
+
+        if (this.userClickCount === this.orderToCheck.length - 1)
+            setTimeout(this.runNextLevel.bind(this), 2000);
+
+    }
+}
+
+Controller.prototype.play = function (lights, delay, duration) {
+    for (t = 0; t < lights.length; t++) {
+        var light = lights[t];
+        var currentDelay = delay * t;
+        console.log("cd:" + currentDelay + "/" + duration);
+        this.device.shine(light, currentDelay, duration);
+    }
+
+    var totalDelayForPlay = lights.length * delay;
+    setTimeout(this.checkUserInput.bind(this, lights), totalDelayForPlay);
+};
 
 
 $(document).ready(function () {
@@ -104,145 +220,3 @@ function getAvailableSize() {
     var availableHeight = window.innerHeight;
     return Math.min(availableWidth, availableHeight);
 }
-
-function msgBox(text) {
-    return function () {
-        alert(text);
-    };
-}
-
-function log(text) {
-    console.log(text);
-}
-
-function Controller() {
-}
-
-Controller.prototype.init = function () {
-
-    this.round = 1;
-
-    window.addEventListener('resize', function () {
-        var paperSize = getAvailableSize();
-        paper.setSize(paperSize, paperSize);
-    });
-
-    var paperSize = getAvailableSize();
-    var paper = Raphael(document.getElementById('device'), paperSize, paperSize);
-    paper.rect(0, 0, 1000, 1000).attr({fill: 'Snow'});
-    paper.setViewBox(0, 0, 1000, 1000);
-    this.device = new Device(this);
-    this.device.init(paper, paperSize);
-    this.order = 'undefined';
-    this.runLevel();
-};
-
-Controller.prototype.getRandomColor = function () {
-    var x = Math.floor((Math.random() * 4) + 1);
-
-    if (x === 1)
-        return 'y';
-
-    if (x === 2)
-        return 'b';
-
-    if (x === 3)
-        return 'g';
-
-    if (x === 4)
-        return 'r';
-
-}
-
-Controller.prototype.runLevel = function () {
-    var delay = 1000;
-    var duration = 500;
-
-    if (this.order === 'undefined') {
-        this.order = [];
-    }
-
-    var colorChar = this.getRandomColor();
-    console.log("rand Char Color: " + colorChar);
-
-    this.order.push(colorChar);
-
-    console.log("order = " + this.order);
-    this.orderToCheck = 'undefined';
-    this.play(this.order, delay, duration);
-}
-
-Controller.prototype.checkUserInput = function (order) {
-    this.device.enableUserInput(true);  //TODO: Eingaben auch tatsächlich verhindern, wenn disabled
-
-    console.log("check order: " + order);
-    this.orderToCheck = order;
-    this.userClickCount = -1;
-}
-
-Controller.prototype.setClicked = function (light) {
-    this.userClickCount++;
-    console.log("controller got clickinfo: " + light.getName());
-    console.log("orderToCheck= " + this.orderToCheck);
-
-    var gameOver = false;
-
-    if (this.orderToCheck !== 'undefined') {
-
-        firstChar = light.getName().toLowerCase()[0];
-        if (firstChar === this.orderToCheck[this.userClickCount]) {
-            console.log("ok");
-        } else {
-            console.log("failed!!");
-            gameOver = true;
-        }
-
-        if (gameOver) {
-            var count = this.orderToCheck.length - 1;
-            
-            console.log("ordertocheck bei gameover " + this.orderToCheck);
-            
-            this.order = 'undefined';
-            this.orderToCheck = 'undefined';
-
-            var that = this;
-            setTimeout(function () {
-                alert("Game Over! Rounds: " + count);
-                setTimeout(that.runLevel.bind(that), 4000);
-            }, 1000);
-            return;
-        }
-
-        if (this.userClickCount === this.orderToCheck.length - 1)
-            setTimeout(this.runLevel.bind(this), 2000);
-
-    }
-}
-
-Controller.prototype.play = function (order, delay, duration) {
-    this.device.enableUserInput(false);
-    console.log("duration" + duration);
-    for (t = 0; t < order.length; t++) {
-        var o = order[t];
-        var currentDelay = delay * t;
-
-        console.log("cd:" + currentDelay + "/" + duration);
-
-        if (o === 'y')
-            this.device.shineYellow(currentDelay, duration);
-
-        if (o === 'b')
-            this.device.shineBlue(currentDelay, duration);
-
-        if (o === 'r')
-            this.device.shineRed(currentDelay, duration);
-
-        if (o === 'g')
-            this.device.shineGreen(currentDelay, duration);
-
-    }
-
-    var totalDelayForPlay = order.length * delay;
-
-    setTimeout(this.checkUserInput.bind(this, order), totalDelayForPlay);
-};
