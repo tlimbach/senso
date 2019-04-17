@@ -19,7 +19,7 @@ function Light(controller, paper, x, y, radius, rotation, colorOn, colorOff, hz)
         'opacity': '0.8',
         cursor: 'pointer'
     });
-
+ 
     this.lamp.click(
             function () {
                 this.on();
@@ -38,6 +38,15 @@ Light.prototype.sound = function () {
     osc.connect(this.context.destination); // connect it to the destination
     osc.start(); // start the oscillator
     osc.stop(this.context.currentTime + 0.5); // stop 2 seconds after the current time
+}
+
+Light.prototype.testSound = function () {
+    var osc = this.context.createOscillator(); // instantiate an oscillator
+    osc.type = 'triangle'; // this is the default - also square, sawtooth, triangle
+    osc.frequency.value = this.hz; // Hz
+    osc.connect(this.context.destination); // connect it to the destination
+    osc.start(); // start the oscillator
+    osc.stop(this.context.currentTime); // stop 2 seconds after the current time
 }
 
 Light.prototype.on = function () {
@@ -101,6 +110,10 @@ Device.prototype.init = function (paper) {
 
     this.start.click(
             function () {
+                for (var t=0; t< this.lights.length; t++) {
+                    var light = this.lights[t];
+                    light.testSound();
+                }
                 this.controller.startGame();
             }.bind(this));
 
