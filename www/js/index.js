@@ -1,4 +1,5 @@
-function Light(controller, paper, x, y, radius, rotation, colorOn, colorOff) {
+"use strict";
+function Light(controller, paper, x, y, radius, rotation, colorOn, colorOff, hz) {
     this.controller = controller;
 
     this.colorOn = colorOn;
@@ -25,9 +26,22 @@ function Light(controller, paper, x, y, radius, rotation, colorOn, colorOff) {
                 setTimeout(this.off.bind(this), 300);
                 controller.setClicked(this);
             }.bind(this));
+
+    this.context = new (window.AudioContext || window.webkitAudioContext)();
+    this.hz = hz;
+}
+
+Light.prototype.sound = function () {
+    var osc = this.context.createOscillator(); // instantiate an oscillator
+    osc.type = 'triangle'; // this is the default - also square, sawtooth, triangle
+    osc.frequency.value = this.hz; // Hz
+    osc.connect(this.context.destination); // connect it to the destination
+    osc.start(); // start the oscillator
+    osc.stop(this.context.currentTime + 0.5); // stop 2 seconds after the current time
 }
 
 Light.prototype.on = function () {
+    this.sound();
     this.lamp.attr({
         stroke: this.colorOn
     });
@@ -45,39 +59,39 @@ function Device(controller) {
 
 Device.prototype.init = function (paper) {
 
- paper.circle(500, 500, 450).attr({fill: 'url("img/plastik.png")'});
-
-       
+    paper.circle(500, 500, 450).attr({fill: 'url("img/plastik.png")'});
     paper.circle(500, 500, 200).attr({fill: 'url("img/metall.png")'});
 
     var radiusLight = 290;
     this.lights = [];
-    this.lights.push(new Light(this.controller, paper, 530, 180, radiusLight, 0, 'RoyalBlue', 'DarkBlue'));
-    this.lights.push(new Light(this.controller, paper, 530, 530, radiusLight, 90, 'LightGreen', 'DarkGreen'));
-    this.lights.push(new Light(this.controller, paper, 180, 530, radiusLight, 180, 'red', 'DarkRed'));
-    this.lights.push(new Light(this.controller, paper, 180, 180, radiusLight, 270, 'yellow', 'GoldenRod'));
+    this.lights.push(new Light(this.controller, paper, 530, 180, radiusLight, 0, 'RoyalBlue', 'DarkBlue', 493));
+    this.lights.push(new Light(this.controller, paper, 530, 530, radiusLight, 90, 'LightGreen', 'DarkGreen', 440));
+    this.lights.push(new Light(this.controller, paper, 180, 530, radiusLight, 180, 'red', 'DarkRed', 391));
+    this.lights.push(new Light(this.controller, paper, 180, 180, radiusLight, 270, 'yellow', 'GoldenRod', 349));
 
     this.roundnumber = paper.text(500, 500, "");
 
-    this.gameOver = paper.text(500, 490, "GAME OVER");
-    this.restart = paper.text(500, 550, "restart");
-
     this.st = paper.set();
-    this.st.push(this.gameOver, this.restart);
+
+    var w = 500;
+    var gameOverRect = paper.rect(500 - (w / 2), 340, w, 300).attr({
+        'fill': 'gray'
+    });
+    this.gameOver = paper.text(500, 490, "GAME OVER");
+    this.st.push(this.gameOver, this.restart, gameOverRect);
 
     this.gameOver.attr({
         'font-size': '64px',
-        'x': '-1000px'
     });
 
-    this.restart.attr({
-        'font-size': '58px',
-        'x': '-1000px'
+    this.st.attr({
+        'opacity': '0'
     });
 
     this.start = paper.text(500, 500, "Start");
     this.start.attr({
-        'font-size': '104px'
+        'font-size': '104px',
+        cursor: 'pointer'
     });
 
 
@@ -86,11 +100,6 @@ Device.prototype.init = function (paper) {
     });
 
     this.start.click(
-            function () {
-                this.controller.startGame();
-            }.bind(this));
-
-    this.st.click(
             function () {
                 this.controller.startGame();
             }.bind(this));
@@ -112,16 +121,27 @@ Device.prototype.setStartEnabled = function (enabled) {
     this.start.attr({"x": x});
 }
 
-Device.prototype.setGameoverEnabled = function (enabled) {
-    var x = enabled ? 500 : -1000;
-    this.st.attr({"x": x});
+Device.prototype.setGameoverEnabled = function (enabled, score) {
+    var x = enabled ? 1 : 0;
+    var text = enabled ? 'Game Over\nScore: ' + score : "";
+    this.st.attr({'opacity': x});
+    this.gameOver.attr({
+        'text': text
+    });
+
+    if (enabled) {
+        setTimeout(function () {
+            this.setGameoverEnabled(false);
+            this.setStartEnabled(true);
+        }.bind(this), 2500);
+    }
 }
 
 Device.prototype.setRoundnumber = function (number) {
     this.roundnumber.attr({
         'text': number,
         'font-size': '124px',
-        'stroke-width' : '10px'
+        'stroke-width': '10px'
     });
 }
 
@@ -137,11 +157,11 @@ Controller.prototype.init = function () {
 
     var paperSize = getAvailableSize();
     var paper = Raphael(document.getElementById('device'), paperSize, paperSize);
-    paper.rect(0, 0, 1000, 1000).attr({fill: 'url("img/sand.png")'});
     paper.setViewBox(0, 0, 1000, 1000);
     this.device = new Device(this);
     this.device.init(paper, paperSize);
     this.lights = this.device.getLights();
+    this.order = [];
 };
 
 Controller.prototype.getRandomLight = function () {
@@ -159,7 +179,7 @@ Controller.prototype.startGame = function () {
 Controller.prototype.runNextLevel = function () {
     this.order.push(this.getRandomLight());
 
-    this.orderToCheck = 'undefined';
+    this.orderToCheck = [];
 
     this.device.setRoundnumber(this.order.length);
 
@@ -174,19 +194,24 @@ Controller.prototype.checkUserInput = function (order) {
     this.userClickCount = -1;
 }
 
+Controller.prototype.isGameActive = function () {
+    return this.order.length > 0;
+}
+
 Controller.prototype.setClicked = function (light) {
-    this.userClickCount++;
 
-    if (this.orderToCheck !== 'undefined') {
-
+    if (this.isGameActive()) {
+        this.userClickCount++;
         if (light !== this.orderToCheck[this.userClickCount]) {
 
+            var score = this.order.length - 1;
+
             this.order = [];
-            this.orderToCheck = 'undefined';
+            this.orderToCheck = [];
 
             var that = this;
             setTimeout(function () {
-                that.device.setGameoverEnabled(true);
+                that.device.setGameoverEnabled(true, score);
                 that.device.setRoundnumber("");
             }, 1000);
             return;
@@ -199,14 +224,13 @@ Controller.prototype.setClicked = function (light) {
 }
 
 Controller.prototype.play = function (lights, delay, duration) {
-    for (t = 0; t < lights.length; t++) {
+    for (var t = 0; t < lights.length; t++) {
         var light = lights[t];
         var currentDelay = delay * t;
-        console.log("cd:" + currentDelay + "/" + duration);
         this.device.shine(light, currentDelay, duration);
     }
 
-    var totalDelayForPlay = lights.length * delay;
+    var totalDelayForPlay = (lights.length - 1) * delay;
     setTimeout(this.checkUserInput.bind(this, lights), totalDelayForPlay);
 };
 
@@ -220,3 +244,5 @@ function getAvailableSize() {
     var availableHeight = window.innerHeight;
     return Math.min(availableWidth, availableHeight);
 }
+
+
