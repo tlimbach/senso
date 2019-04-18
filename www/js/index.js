@@ -19,12 +19,12 @@ function Light(controller, paper, x, y, radius, rotation, colorOn, colorOff, hz)
         'opacity': '0.8',
         cursor: 'pointer'
     });
- 
+
     this.lamp.click(
             function () {
-                this.on();
+                var ok = controller.setClicked(this);
+                this.on(ok);
                 setTimeout(this.off.bind(this), 300);
-                controller.setClicked(this);
             }.bind(this));
 
     this.context = new (window.AudioContext || window.webkitAudioContext)();
@@ -49,8 +49,10 @@ Light.prototype.testSound = function () {
     osc.stop(this.context.currentTime); // stop 2 seconds after the current time
 }
 
-Light.prototype.on = function () {
-    this.sound();
+Light.prototype.on = function (ok) {
+    if (ok === true)
+        this.sound();
+    
     this.lamp.attr({
         stroke: this.colorOn
     });
@@ -110,7 +112,7 @@ Device.prototype.init = function (paper) {
 
     this.start.click(
             function () {
-                for (var t=0; t< this.lights.length; t++) {
+                for (var t = 0; t < this.lights.length; t++) {
                     var light = this.lights[t];
                     light.testSound();
                 }
@@ -125,7 +127,7 @@ Device.prototype.getLights = function () {
 }
 
 Device.prototype.shine = function (light, delay, duration) {
-    setTimeout(light.on.bind(light), delay);
+    setTimeout(light.on.bind(light, true), delay);
     setTimeout(light.off.bind(light), (delay + duration));
 };
 
@@ -156,6 +158,16 @@ Device.prototype.setRoundnumber = function (number) {
         'font-size': '124px',
         'stroke-width': '10px'
     });
+}
+
+Device.prototype.errorBeep = function () {
+    var context = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = context.createOscillator(); // instantiate an oscillator
+    osc.type = 'sawtooth'; // this is the default - also square, sawtooth, triangle
+    osc.frequency.value = 80; // Hz
+    osc.connect(context.destination); // connect it to the destination
+    osc.start(); // start the oscillator
+    osc.stop(context.currentTime + 1.5); // stop 2 seconds after the current time
 }
 
 
@@ -194,11 +206,25 @@ Controller.prototype.runNextLevel = function () {
 
     this.orderToCheck = [];
 
-    this.device.setRoundnumber(this.order.length);
+    var roundNumber = this.order.length;
+
+    this.device.setRoundnumber(roundNumber);
+    var delay = 1000;
+    var duration = 500;
+
+    if (roundNumber >= 5) {
+        delay = 800;
+        duration = 400;
+    }
+
+    if (roundNumber >= 10) {
+        delay = 600;
+        duration = 300;
+    }
 
     var that = this;
     setTimeout(function () {
-        that.play(that.order, 1000, 500);
+        that.play(that.order, delay, duration);
     }, 500);
 }
 
@@ -223,17 +249,20 @@ Controller.prototype.setClicked = function (light) {
             this.orderToCheck = [];
 
             var that = this;
+            this.device.errorBeep();
             setTimeout(function () {
                 that.device.setGameoverEnabled(true, score);
                 that.device.setRoundnumber("");
             }, 1000);
-            return;
+            return false;
         }
 
         if (this.userClickCount === this.orderToCheck.length - 1)
             setTimeout(this.runNextLevel.bind(this), 2000);
 
     }
+
+    return true;
 }
 
 Controller.prototype.play = function (lights, delay, duration) {
@@ -257,5 +286,3 @@ function getAvailableSize() {
     var availableHeight = window.innerHeight;
     return Math.min(availableWidth, availableHeight);
 }
-
-
