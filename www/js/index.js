@@ -19,7 +19,7 @@ function Light(controller, paper, x, y, radius, rotation, colorOn, colorOff, hz)
         'opacity': '0.8',
         cursor: 'pointer'
     });
- 
+
     this.lamp.click(
             function () {
                 this.on();
@@ -110,7 +110,7 @@ Device.prototype.init = function (paper) {
 
     this.start.click(
             function () {
-                for (var t=0; t< this.lights.length; t++) {
+                for (var t = 0; t < this.lights.length; t++) {
                     var light = this.lights[t];
                     light.testSound();
                 }
@@ -194,11 +194,25 @@ Controller.prototype.runNextLevel = function () {
 
     this.orderToCheck = [];
 
-    this.device.setRoundnumber(this.order.length);
+    var roundNumber = this.order.length;
+
+    this.device.setRoundnumber(roundNumber);
+    var delay = 1000;
+    var duration = 500;
+
+    if (roundNumber >= 5) {
+        delay = 800;
+        duration = 400;
+    }
+
+    if (roundNumber >= 10) {
+        delay = 600;
+        duration = 300;
+    }
 
     var that = this;
     setTimeout(function () {
-        that.play(that.order, 1000, 500);
+        that.play(that.order, delay, duration);
     }, 500);
 }
 
