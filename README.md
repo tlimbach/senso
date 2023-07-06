@@ -3,7 +3,7 @@
 
 This project implements a small Senso game (aka Simon or others).
 
-* * <em>Start a session in browser on http://omerkel.github.io/senso/www </em>
+* * <em>Start a session in browser on http://tlimbach.github.io/senso/www </em>
 * <em>Android APK available for install</em> <img align="top" width="32" src="res/android.gif" /> https://github.com/OMerkel/senso/releases
 * <em>runs in various browsers on</em>
     * <em>desktop systems like BSDs, Linux, Win, MacOS and</em>
