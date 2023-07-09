@@ -1,25 +1,21 @@
 {
   "name": "de.schrebergartensolutions.senso",
   "displayName": "Senso",
-  "version": "1.0.0",
-  "description": "A sample Apache Cordova application that responds to the deviceready event.",
-  "main": "index.js",
+  "version": "1.0.1",
+  "description": "A classical game of listen and reproduce a sequence of tones and lights in correct order. The game is a good training for the player's short-term memory skills.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "ecosystem:cordova"
-  ],
-  "author": "Apache Cordova Team",
-  "license": "Apache-2.0",
-  "dependencies": {},
-  "devDependencies": {
-    "cordova-plugin-whitelist": "^1.3.3"
-  },
+  "author": "Thorsten Limbach",
+  "author": "Oliver Merkel",
+  "license": "parts MIT / parts Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License / see LICENSE file for details",
   "cordova": {
-    "plugins": {
-      "cordova-plugin-whitelist": {}
-    },
-    "platforms": []
+    "plugins": {},
+    "platforms": [
+      "android"
+    ]
+  },
+  "devDependencies": {
+    "cordova-android": "^12.0.0"
   }
 }
